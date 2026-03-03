@@ -117,6 +117,13 @@
             border-color: #f4b740;
             background: #fffffc;
         }
+        /* Style for when typing is blocked */
+        .input-group input:disabled {
+            background: #f0f2f5;
+            color: #99abb4;
+            border-color: #d1d9e0;
+            cursor: not-allowed;
+        }
         .button-group {
             display: flex;
             flex-wrap: wrap;
@@ -141,6 +148,11 @@
         .btn:active {
             transform: translateY(6px);
             box-shadow: 0 2px 0 #96a6b9, 0 10px 18px rgba(0,0,0,0.1);
+        }
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            pointer-events: none;
         }
         .btn-primary {
             background: #f4b740;
@@ -227,15 +239,13 @@
             Тренажёр уравнений
             <span>случайные</span>
         </h1>
-        <div class="sub">Каждый раз новые примеры · линейные ax + b = c</div>
+        <div class="sub">Посмотрел решение? Переходи к следующему!</div>
 
-        <!-- Уравнение динамическое -->
         <div class="equation-panel">
             <div class="equation" id="equationDisplay">2x + 5 = 13</div>
             <div class="variable-badge">x = ?</div>
         </div>
 
-        <!-- Основной блок -->
         <div class="solve-area">
             <div class="input-group">
                 <label>x =</label>
@@ -272,10 +282,10 @@
         (function() {
             // ---------- Состояние ----------
             let currentEquation = { a: 2, b: 5, c: 13, x: 4 };
-            let correctCount = 0;      // количество правильных ответов
-            let wrongCount = 0;         // количество НЕправильных ответов
-            let currentAnswerGiven = false;   // для этого уравнения уже получали правильный ответ?
-            let lastAttemptWasWrong = false;   // флаг, чтобы не накручивать ошибки при повторных неправильных попытках на том же уравнении
+            let correctCount = 0;      
+            let wrongCount = 0;         
+            let currentAnswerGiven = false;   
+            let lastAttemptWasWrong = false;   
 
             // Элементы DOM
             const equationDisplay = document.getElementById('equationDisplay');
@@ -290,20 +300,19 @@
             const wrongSpan = document.getElementById('wrongCount');
             const feedbackIcon = document.getElementById('feedbackIcon');
 
-            // ---------- Генерация случайного уравнения (линейного, корень целый) ----------
+            // ---------- Генерация случайного уравнения ----------
             function randomInt(min, max) {
                 return Math.floor(Math.random() * (max - min + 1)) + min;
             }
 
             function generateRandomEquation() {
-                const a = randomInt(1, 6);       // коэффициент 1..6
-                const x = randomInt(-7, 9);       // корень
-                const b = randomInt(-8, 10);       // свободный член
+                const a = randomInt(1, 6);       
+                const x = randomInt(-7, 9);       
+                const b = randomInt(-8, 10);       
                 const c = a * x + b;
                 return { a, b, c, x };
             }
 
-            // Отобразить уравнение
             function renderEquation(eq) {
                 let { a, b, c } = eq;
                 let bPart = '';
@@ -316,17 +325,20 @@
                 equationDisplay.textContent = `${aPart}${bPart} = ${c}`;
             }
 
-            // Обновить счётчики на экране
             function updateCounters() {
                 correctSpan.textContent = correctCount;
                 wrongSpan.textContent = wrongCount;
             }
 
-            // Сброс состояния для нового уравнения (счётчики не трогаем)
             function resetForNewEquation() {
                 currentAnswerGiven = false;
-                lastAttemptWasWrong = false;   // для нового уравнения сбрасываем флаг ошибки
+                lastAttemptWasWrong = false;   
                 answerInput.value = '';
+                // Unlock everything
+                answerInput.disabled = false;
+                checkBtn.disabled = false;
+                showSolutionBtn.disabled = false;
+                
                 messageBox.innerHTML = '🆕 Новое уравнение. Попробуй решить.';
                 messageBox.style.borderLeftColor = '#2a6f97';
                 solutionBox.style.display = 'none';
@@ -334,7 +346,6 @@
                 feedbackIcon.textContent = '⬜';
             }
 
-            // Загрузить новое случайное уравнение
             function loadNewEquation() {
                 const newEq = generateRandomEquation();
                 currentEquation = newEq;
@@ -344,6 +355,8 @@
 
             // ---------- Проверка ответа ----------
             function checkAnswerHandler() {
+                if (answerInput.disabled) return;
+
                 const rawValue = answerInput.value.trim();
                 if (rawValue === '') {
                     messageBox.innerHTML = '⚠️ Введи число!';
@@ -365,37 +378,41 @@
                     messageBox.style.borderLeftColor = '#40916c';
                     feedbackIcon.textContent = '✅';
                     
-                    // Если за это уравнение ещё не получали правильный ответ — увеличиваем счётчик верно
                     if (!currentAnswerGiven) {
                         correctCount++;
                         currentAnswerGiven = true;
-                        // Если до этого была ошибка в этом уравнении, она уже засчитана, ничего не меняем
                         updateCounters();
                     }
-                    // (не обнуляем wrong, ошибка уже была)
+                    // Prevent further changes after correct answer
+                    answerInput.disabled = true;
+                    checkBtn.disabled = true;
                 } else {
                     messageBox.innerHTML = `❌ Неверно. Попробуй ещё или посмотри решение.`;
                     messageBox.style.borderLeftColor = '#d68c8c';
                     feedbackIcon.textContent = '❌';
                     
-                    // Увеличиваем счётчик ошибок только если в этом уравнении ещё не было правильного ответа
-                    // и мы ещё не засчитали ошибку для этой попытки (lastAttemptWasWrong)
                     if (!currentAnswerGiven && !lastAttemptWasWrong) {
                         wrongCount++;
-                        lastAttemptWasWrong = true;   // помечаем, что ошибка уже учтена
+                        lastAttemptWasWrong = true;   
                         updateCounters();
                     }
                 }
             }
 
-            // Показать пошаговое решение
+            // ---------- Показать пошаговое решение (and lock input) ----------
             function showSolution() {
                 const eq = currentEquation;
                 const { a, b, c, x } = eq;
+                
+                // LOCK INPUT AND CHECK BUTTON
+                answerInput.disabled = true;
+                checkBtn.disabled = true;
+                showSolutionBtn.disabled = true; // Lock solution button too
+
                 let steps = '📐 Решение:\n';
                 steps += `${a === 1 ? 'x' : a + '·x'} ${b < 0 ? '– ' + Math.abs(b) : '+ ' + b} = ${c}\n`;
                 steps += `Переносим ${b < 0 ? '–' + Math.abs(b) : '+' + b} вправо:\n`;
-                const rightSide = c - b;   // a*x
+                const rightSide = c - b;   
                 steps += `${a === 1 ? 'x' : a + '·x'} = ${rightSide}\n`;
                 if (a !== 1) {
                     steps += `Делим на ${a}: x = ${rightSide} / ${a} = ${x}\n`;
@@ -403,51 +420,31 @@
                     steps += `x = ${rightSide}\n`;
                 }
                 steps += `🎯 Корень: x = ${x}`;
+                
                 solutionBox.style.display = 'block';
                 solutionBox.innerHTML = steps.replace(/\n/g, '<br>');
+                
+                messageBox.innerHTML = '🚫 Ввод заблокирован. Жми "Следующее" или "Рестарт".';
+                messageBox.style.borderLeftColor = '#f4b740';
             }
 
-            // ---------- Рестарт: сброс ВСЕХ счётчиков ----------
             function restartGame() {
-                // Сбрасываем счётчики
                 correctCount = 0;
                 wrongCount = 0;
                 updateCounters();
-                
-                // Генерируем свежее уравнение
-                const freshEq = generateRandomEquation();
-                currentEquation = freshEq;
-                renderEquation(freshEq);
-                
-                // Сбрасываем все флаги и сообщения
-                currentAnswerGiven = false;
-                lastAttemptWasWrong = false;
-                answerInput.value = '';
-                messageBox.innerHTML = '🔄 Рестарт! Счётчики обнулены. Новое уравнение.';
-                messageBox.style.borderLeftColor = '#2a6f97';
-                solutionBox.style.display = 'none';
-                solutionBox.innerHTML = '';
-                feedbackIcon.textContent = '⬜';
+                loadNewEquation();
+                messageBox.innerHTML = '🔄 Рестарт! Счётчики обнулены. Давай заново.';
             }
 
             // ---------- Инициализация ----------
             function init() {
-                // Первое случайное уравнение
                 loadNewEquation();
 
-                // Кнопки
                 checkBtn.addEventListener('click', checkAnswerHandler);
-                nextBtn.addEventListener('click', function() {
-                    loadNewEquation();
-                });
-                showSolutionBtn.addEventListener('click', function() {
-                    showSolution();
-                });
-                restartBtn.addEventListener('click', function() {
-                    restartGame();
-                });
+                nextBtn.addEventListener('click', loadNewEquation);
+                showSolutionBtn.addEventListener('click', showSolution);
+                restartBtn.addEventListener('click', restartGame);
 
-                // Enter в поле ввода
                 answerInput.addEventListener('keypress', function(e) {
                     if (e.key === 'Enter') {
                         e.preventDefault();
