@@ -1,460 +1,249 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Тренажёр уравнений (счётчик ошибок)</title>
-    <style>
-        * {
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
-        }
-        body {
-            background: linear-gradient(145deg, #1f3a4b 0%, #15232e 100%);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin: 0;
-            padding: 16px;
-        }
-        .card {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(4px);
-            max-width: 750px;
-            width: 100%;
-            padding: 30px 25px;
-            border-radius: 56px;
-            box-shadow: 0 25px 45px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255,255,240,0.3) inset;
-        }
-        h1 {
-            font-size: 2.2rem;
-            font-weight: 700;
-            margin: 0 0 8px 0;
-            color: #1d3d5c;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        h1 span {
-            background: #f4b740;
-            color: #1d2c3a;
-            font-size: 1.2rem;
-            padding: 6px 18px;
-            border-radius: 50px;
-            font-weight: 600;
-            margin-left: 10px;
-        }
-        .sub {
-            color: #244c6b;
-            font-size: 1rem;
-            border-left: 4px solid #f4b740;
-            padding-left: 18px;
-            margin: 10px 0 25px 0;
-            background: rgba(244, 183, 64, 0.1);
-            border-radius: 0 30px 30px 0;
-        }
-        .equation-panel {
-            background: #eaf0f8;
-            border-radius: 80px;
-            padding: 30px 20px;
-            text-align: center;
-            border: 3px solid white;
-            box-shadow: inset 0 5px 10px rgba(0,0,0,0.03), 0 12px 25px rgba(0, 25, 45, 0.25);
-            margin-bottom: 25px;
-        }
-        .equation {
-            font-size: 4rem;
-            font-weight: 700;
-            color: #0b2f44;
-            word-break: break-word;
-            line-height: 1.2;
-            letter-spacing: 2px;
-        }
-        .variable-badge {
-            display: inline-block;
-            background: #2a6f97;
-            color: white;
-            border-radius: 50px;
-            padding: 8px 30px;
-            font-size: 1.5rem;
-            margin-top: 10px;
-            font-weight: 600;
-            box-shadow: 0 5px 0 #0e3e5c;
-        }
-        .solve-area {
-            background: white;
-            border-radius: 60px;
-            padding: 25px;
-            box-shadow: 0 8px 0 #bcc9da, 0 18px 35px rgba(0,0,0,0.15);
-        }
-        .input-group {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            justify-content: center;
-            gap: 20px;
-            margin: 15px 0;
-        }
-        .input-group label {
-            font-weight: 700;
-            color: #1f3a57;
-            font-size: 1.8rem;
-        }
-        .input-group input {
-            font-size: 2.2rem;
-            width: 180px;
-            text-align: center;
-            padding: 12px 5px;
-            border: 4px solid #ccd9e9;
-            border-radius: 60px;
-            background: #f9fcff;
-            font-weight: 600;
-            color: #0b3b5e;
-            outline: none;
-        }
-        .input-group input:focus {
-            border-color: #f4b740;
-            background: #fffffc;
-        }
-        /* Style for when typing is blocked */
-        .input-group input:disabled {
-            background: #f0f2f5;
-            color: #99abb4;
-            border-color: #d1d9e0;
-            cursor: not-allowed;
-        }
-        .button-group {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 15px;
-            margin: 25px 0 15px;
-        }
-        .btn {
-            border: none;
-            background: white;
-            font-weight: 600;
-            font-size: 1.2rem;
-            padding: 16px 28px;
-            border-radius: 50px;
-            cursor: pointer;
-            transition: 0.08s linear;
-            box-shadow: 0 6px 0 #b1bfcf, 0 10px 18px rgba(0,0,0,0.1);
-            border: 1px solid rgba(255,255,255,0.8);
-            color: #1f3a57;
-            flex: 0 1 auto;
-        }
-        .btn:active {
-            transform: translateY(6px);
-            box-shadow: 0 2px 0 #96a6b9, 0 10px 18px rgba(0,0,0,0.1);
-        }
-        .btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            pointer-events: none;
-        }
-        .btn-primary {
-            background: #f4b740;
-            color: #1f3a57;
-            box-shadow: 0 6px 0 #cc9629, 0 10px 18px rgba(0,0,0,0.15);
-            font-weight: 700;
-        }
-        .btn-success {
-            background: #40916c;
-            color: white;
-            box-shadow: 0 6px 0 #1f5e41, 0 10px 18px rgba(0,0,0,0.15);
-        }
-        .btn-restart {
-            background: #d68c8c;
-            color: #2d2d2d;
-            box-shadow: 0 6px 0 #9f6060;
-        }
-        .message {
-            background: #ecf6ff;
-            border-radius: 60px;
-            padding: 18px 22px;
-            margin: 20px 0 5px;
-            font-size: 1.2rem;
-            font-weight: 500;
-            border-left: 8px solid #2a6f97;
-            color: #003153;
-        }
-        .solution-steps {
-            background: #dfebf7;
-            border-radius: 40px;
-            padding: 18px 22px;
-            font-size: 1.1rem;
-            border: 2px dashed #2f6f9f;
-            color: #043753;
-            margin: 15px 0 0;
-            font-family: 'Courier New', monospace;
-            white-space: pre-line;
-            word-break: break-word;
-        }
-        .footer-stats {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            color: #1d3b5a;
-            font-weight: 600;
-            margin-top: 20px;
-            padding: 0 8px;
-            flex-wrap: wrap;
-            gap: 15px;
-        }
-        .stats-block {
-            display: flex;
-            gap: 25px;
-            align-items: center;
-        }
-        .stat-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            background: #eef3f7;
-            padding: 8px 20px;
-            border-radius: 50px;
-            box-shadow: inset 0 2px 5px rgba(0,0,0,0.05);
-        }
-        .stat-correct {
-            background: #40916c;
-            color: white;
-        }
-        .stat-wrong {
-            background: #d68c8c;
-            color: white;
-        }
-        .score-badge {
-            font-size: 1.5rem;
-            font-weight: 700;
-            min-width: 40px;
-            text-align: center;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Equation Trainer</title>
+<style>
+*{box-sizing:border-box;font-family:'Segoe UI',Roboto,system-ui,sans-serif}
+body{background:linear-gradient(145deg,#1f3a4b 0%,#15232e 100%);min-height:100vh;display:flex;justify-content:center;align-items:center;margin:0;padding:16px}
+.card{background:rgba(255,255,255,.95);backdrop-filter:blur(4px);max-width:750px;width:100%;padding:30px 25px;border-radius:56px;box-shadow:0 25px 45px rgba(0,0,0,.6),0 0 0 1px rgba(255,255,240,.3) inset}
+h1{font-size:2.2rem;font-weight:700;margin:0 0 8px 0;color:#1d3d5c;display:flex;align-items:center;gap:10px}
+h1 span{background:#f4b740;color:#1d2c3a;font-size:1.2rem;padding:6px 18px;border-radius:50px;font-weight:600;margin-left:10px}
+.sub{color:#244c6b;font-size:1rem;border-left:4px solid #f4b740;padding-left:18px;margin:10px 0 25px 0;background:rgba(244,183,64,.1);border-radius:0 30px 30px 0}
+.lang-switch{display:flex;justify-content:flex-end;margin-bottom:10px}
+select{padding:6px 10px;border-radius:10px}
+.equation-panel{background:#eaf0f8;border-radius:80px;padding:30px 20px;text-align:center;border:3px solid white;box-shadow:inset 0 5px 10px rgba(0,0,0,.03),0 12px 25px rgba(0,25,45,.25);margin-bottom:25px}
+
+/* THE FIX: Force LTR for the math regardless of page direction */
+.equation {
+    font-size: 4rem;
+    font-weight: 700;
+    color: #0b2f44;
+    word-break: break-word;
+    line-height: 1.2;
+    letter-spacing: 2px;
+    direction: ltr !important; 
+    display: block;
+}
+
+.variable-badge{display:inline-block;background:#2a6f97;color:white;border-radius:50px;padding:8px 30px;font-size:1.5rem;margin-top:10px;font-weight:600;box-shadow:0 5px 0 #0e3e5c;direction: ltr !important;}
+.solve-area{background:white;border-radius:60px;padding:25px;box-shadow:0 8px 0 #bcc9da,0 18px 35px rgba(0,0,0,.15)}
+.input-group{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:20px;margin:15px 0}
+.input-group label{font-weight:700;color:#1f3a57;font-size:1.8rem;direction: ltr !important;}
+.input-group input{font-size:2.2rem;width:180px;text-align:center;padding:12px 5px;border:4px solid #ccd9e9;border-radius:60px;background:#f9fcff;font-weight:600;color:#0b3b5e;outline:none}
+.button-group{display:flex;flex-wrap:wrap;justify-content:center;gap:15px;margin:25px 0 15px}
+.btn{border:none;background:white;font-weight:600;font-size:1.2rem;padding:16px 28px;border-radius:50px;cursor:pointer;transition:.08s linear;box-shadow:0 6px 0 #b1bfcf,0 10px 18px rgba(0,0,0,.1);border:1px solid rgba(255,255,255,.8);color:#1f3a57}
+.btn:active{transform:translateY(6px);box-shadow:0 2px 0 #96a6b9,0 10px 18px rgba(0,0,0,.1)}
+.btn-primary{background:#f4b740;color:#1f3a57;box-shadow:0 6px 0 #cc9629,0 10px 18px rgba(0,0,0,.15);font-weight:700}
+.btn-restart{background:#d68c8c;color:#2d2d2d;box-shadow:0 6px 0 #9f6060}
+.message{background:#ecf6ff;border-radius:60px;padding:18px 22px;margin:20px 0 5px;font-size:1.2rem;font-weight:500;border-left:8px solid #2a6f97;color:#003153}
+.solution-steps{background:#dfebf7;border-radius:40px;padding:18px 22px;font-size:1.1rem;border:2px dashed #2f6f9f;color:#043753;margin:15px 0 0;font-family:'Courier New',monospace;white-space:pre-line;direction: ltr !important; text-align: left;}
+.footer-stats{display:flex;justify-content:space-between;align-items:center;color:#1d3b5a;font-weight:600;margin-top:20px;padding:0 8px;flex-wrap:wrap;gap:15px}
+.stats-block{display:flex;gap:25px;align-items:center}
+.stat-item{display:flex;align-items:center;gap:8px;background:#eef3f7;padding:8px 20px;border-radius:50px;box-shadow:inset 0 2px 5px rgba(0,0,0,.05)}
+.stat-correct{background:#40916c;color:white}
+.stat-wrong{background:#d68c8c;color:white}
+.score-badge{font-size:1.5rem;font-weight:700;min-width:40px;text-align:center}
+</style>
 </head>
 <body>
-    <div class="card" id="app">
-        <h1>
-            Тренажёр уравнений
-            <span>случайные</span>
-        </h1>
-        <div class="sub">Посмотрел решение? Переходи к следующему!</div>
-
-        <div class="equation-panel">
-            <div class="equation" id="equationDisplay">2x + 5 = 13</div>
-            <div class="variable-badge">x = ?</div>
-        </div>
-
-        <div class="solve-area">
-            <div class="input-group">
-                <label>x =</label>
-                <input type="number" id="answerInput" placeholder="ответ" value="" step="any">
-            </div>
-
-            <div class="button-group">
-                <button class="btn btn-primary" id="checkBtn">✅ Проверить</button>
-                <button class="btn" id="nextBtn">🎲 Следующее</button>
-                <button class="btn" id="showSolutionBtn">🔍 Решение</button>
-                <button class="btn btn-restart" id="restartBtn">⟲ Рестарт</button>
-            </div>
-
-            <div id="messageBox" class="message">👋 Реши уравнение и впиши x</div>
-            <div id="solutionBox" class="solution-steps" style="display: none;"></div>
-
-            <div class="footer-stats">
-                <div class="stats-block">
-                    <div class="stat-item stat-correct">
-                        <span>✅ Верно:</span>
-                        <span class="score-badge" id="correctCount">0</span>
-                    </div>
-                    <div class="stat-item stat-wrong">
-                        <span>❌ Неверно:</span>
-                        <span class="score-badge" id="wrongCount">0</span>
-                    </div>
-                </div>
-                <span class="score" id="feedbackIcon">⬜</span>
-            </div>
-        </div>
+<div class="card" id="app">
+    <div class="lang-switch">
+        <select id="langSelect">
+            <option value="en">English</option>
+            <option value="ru">Русский</option>
+            <option value="he">עברית</option>
+        </select>
     </div>
 
-    <script>
-        (function() {
-            // ---------- Состояние ----------
-            let currentEquation = { a: 2, b: 5, c: 13, x: 4 };
-            let correctCount = 0;      
-            let wrongCount = 0;         
-            let currentAnswerGiven = false;   
-            let lastAttemptWasWrong = false;   
+    <h1><span id="title">Equation Trainer</span></h1>
+    <div class="sub" id="subtitle">Solved it? Move to the next one!</div>
 
-            // Элементы DOM
-            const equationDisplay = document.getElementById('equationDisplay');
-            const answerInput = document.getElementById('answerInput');
-            const checkBtn = document.getElementById('checkBtn');
-            const nextBtn = document.getElementById('nextBtn');
-            const showSolutionBtn = document.getElementById('showSolutionBtn');
-            const restartBtn = document.getElementById('restartBtn');
-            const messageBox = document.getElementById('messageBox');
-            const solutionBox = document.getElementById('solutionBox');
-            const correctSpan = document.getElementById('correctCount');
-            const wrongSpan = document.getElementById('wrongCount');
-            const feedbackIcon = document.getElementById('feedbackIcon');
+    <div class="equation-panel">
+        <div class="equation" id="equationDisplay">2x + 5 = 13</div>
+        <div class="variable-badge">x = ?</div>
+    </div>
 
-            // ---------- Генерация случайного уравнения ----------
-            function randomInt(min, max) {
-                return Math.floor(Math.random() * (max - min + 1)) + min;
-            }
+    <div class="solve-area">
+        <div class="input-group">
+            <label>x =</label>
+            <input type="number" id="answerInput" placeholder="answer" step="any">
+        </div>
 
-            function generateRandomEquation() {
-                const a = randomInt(1, 6);       
-                const x = randomInt(-7, 9);       
-                const b = randomInt(-8, 10);       
-                const c = a * x + b;
-                return { a, b, c, x };
-            }
+        <div class="button-group">
+            <button class="btn btn-primary" id="checkBtn">✅ <span id="checkText">Check</span></button>
+            <button class="btn" id="nextBtn">🎲 <span id="nextText">Next</span></button>
+            <button class="btn" id="showSolutionBtn">🔍 <span id="solutionText">Solution</span></button>
+            <button class="btn btn-restart" id="restartBtn">⟲ <span id="restartText">Restart</span></button>
+        </div>
 
-            function renderEquation(eq) {
-                let { a, b, c } = eq;
-                let bPart = '';
-                if (b < 0) {
-                    bPart = ` - ${Math.abs(b)}`;
-                } else {
-                    bPart = ` + ${b}`;
-                }
-                const aPart = (a === 1) ? 'x' : (a + 'x');
-                equationDisplay.textContent = `${aPart}${bPart} = ${c}`;
-            }
+        <div id="messageBox" class="message">👋 <span id="solveMsg">Solve the equation and enter x</span></div>
+        <div id="solutionBox" class="solution-steps" style="display:none"></div>
 
-            function updateCounters() {
-                correctSpan.textContent = correctCount;
-                wrongSpan.textContent = wrongCount;
-            }
+        <div class="footer-stats">
+            <div class="stats-block">
+                <div class="stat-item stat-correct">
+                    <span>✅ <span id="correctText">Correct</span>:</span>
+                    <span class="score-badge" id="correctCount">0</span>
+                </div>
+                <div class="stat-item stat-wrong">
+                    <span>❌ <span id="wrongText">Wrong</span>:</span>
+                    <span class="score-badge" id="wrongCount">0</span>
+                </div>
+            </div>
+            <span id="feedbackIcon">⬜</span>
+        </div>
+    </div>
+</div>
 
-            function resetForNewEquation() {
-                currentAnswerGiven = false;
-                lastAttemptWasWrong = false;   
-                answerInput.value = '';
-                // Unlock everything
-                answerInput.disabled = false;
-                checkBtn.disabled = false;
-                showSolutionBtn.disabled = false;
-                
-                messageBox.innerHTML = '🆕 Новое уравнение. Попробуй решить.';
-                messageBox.style.borderLeftColor = '#2a6f97';
-                solutionBox.style.display = 'none';
-                solutionBox.innerHTML = '';
-                feedbackIcon.textContent = '⬜';
-            }
+<script>
+const translations = {
+    en: { title: "Equation Trainer", subtitle: "Solved it? Move to the next one!", check: "Check", next: "Next", solution: "Solution", restart: "Restart", solve: "Solve the equation and enter x", correct: "Correct", wrong: "Wrong", placeholder: "answer" },
+    ru: { title: "Тренажёр уравнений", subtitle: "Посмотрел решение? Переходи к следующему!", check: "Проверить", next: "Следующее", solution: "Решение", restart: "Рестарт", solve: "Реши уравнение и впиши x", correct: "Верно", wrong: "Неверно", placeholder: "ответ" },
+    he: { title: "מאמן משוואות", subtitle: "פתרת? עבור למשוואה הבאה!", check: "בדוק", next: "הבא", solution: "פתרון", restart: "התחל מחדש", solve: "פתור את המשוואה והכנס את x", correct: "נכון", wrong: "לא נכון", placeholder: "תשובה" }
+};
 
-            function loadNewEquation() {
-                const newEq = generateRandomEquation();
-                currentEquation = newEq;
-                renderEquation(newEq);
-                resetForNewEquation();
-            }
+function setLanguage(lang) {
+    const t = translations[lang];
+    document.getElementById("title").textContent = t.title;
+    document.getElementById("subtitle").textContent = t.subtitle;
+    document.getElementById("checkText").textContent = t.check;
+    document.getElementById("nextText").textContent = t.next;
+    document.getElementById("solutionText").textContent = t.solution;
+    document.getElementById("restartText").textContent = t.restart;
+    document.getElementById("solveMsg").textContent = t.solve;
+    document.getElementById("correctText").textContent = t.correct;
+    document.getElementById("wrongText").textContent = t.wrong;
+    document.getElementById("answerInput").placeholder = t.placeholder;
+    document.body.dir = (lang === 'he') ? 'rtl' : 'ltr';
+}
 
-            // ---------- Проверка ответа ----------
-            function checkAnswerHandler() {
-                if (answerInput.disabled) return;
+document.getElementById("langSelect").addEventListener("change", e => setLanguage(e.target.value));
+setLanguage("en");
 
-                const rawValue = answerInput.value.trim();
-                if (rawValue === '') {
-                    messageBox.innerHTML = '⚠️ Введи число!';
-                    messageBox.style.borderLeftColor = '#f4b740';
-                    return;
-                }
-                const userNum = parseFloat(rawValue);
-                if (isNaN(userNum)) {
-                    messageBox.innerHTML = '❌ Нужно ввести число (цифрами)';
-                    messageBox.style.borderLeftColor = '#d68c8c';
-                    return;
-                }
+(function() {
+    let currentEquation = { a: 2, b: 5, c: 13, x: 4 };
+    let correctCount = 0;
+    let wrongCount = 0;
+    let currentAnswerGiven = false;
+    let lastAttemptWasWrong = false;
 
-                const correct = currentEquation.x;
-                const isCorrect = Math.abs(userNum - correct) < 0.0001;
+    const equationDisplay = document.getElementById('equationDisplay');
+    const answerInput = document.getElementById('answerInput');
+    const checkBtn = document.getElementById('checkBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const showSolutionBtn = document.getElementById('showSolutionBtn');
+    const restartBtn = document.getElementById('restartBtn');
+    const solutionBox = document.getElementById('solutionBox');
+    const correctSpan = document.getElementById('correctCount');
+    const wrongSpan = document.getElementById('wrongCount');
+    const feedbackIcon = document.getElementById('feedbackIcon');
 
-                if (isCorrect) {
-                    messageBox.innerHTML = '✅ Великолепно! Правильно.';
-                    messageBox.style.borderLeftColor = '#40916c';
-                    feedbackIcon.textContent = '✅';
-                    
-                    if (!currentAnswerGiven) {
-                        correctCount++;
-                        currentAnswerGiven = true;
-                        updateCounters();
-                    }
-                    // Prevent further changes after correct answer
-                    answerInput.disabled = true;
-                    checkBtn.disabled = true;
-                } else {
-                    messageBox.innerHTML = `❌ Неверно. Попробуй ещё или посмотри решение.`;
-                    messageBox.style.borderLeftColor = '#d68c8c';
-                    feedbackIcon.textContent = '❌';
-                    
-                    if (!currentAnswerGiven && !lastAttemptWasWrong) {
-                        wrongCount++;
-                        lastAttemptWasWrong = true;   
-                        updateCounters();
-                    }
-                }
-            }
+    function randomInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
 
-            // ---------- Показать пошаговое решение (and lock input) ----------
-            function showSolution() {
-                const eq = currentEquation;
-                const { a, b, c, x } = eq;
-                
-                // LOCK INPUT AND CHECK BUTTON
-                answerInput.disabled = true;
-                checkBtn.disabled = true;
-                showSolutionBtn.disabled = true; // Lock solution button too
+    function generateRandomEquation() {
+        const a = randomInt(1, 6);
+        const x = randomInt(-7, 9);
+        const b = randomInt(-8, 10);
+        const c = a * x + b;
+        return { a, b, c, x };
+    }
 
-                let steps = '📐 Решение:\n';
-                steps += `${a === 1 ? 'x' : a + '·x'} ${b < 0 ? '– ' + Math.abs(b) : '+ ' + b} = ${c}\n`;
-                steps += `Переносим ${b < 0 ? '–' + Math.abs(b) : '+' + b} вправо:\n`;
-                const rightSide = c - b;   
-                steps += `${a === 1 ? 'x' : a + '·x'} = ${rightSide}\n`;
-                if (a !== 1) {
-                    steps += `Делим на ${a}: x = ${rightSide} / ${a} = ${x}\n`;
-                } else {
-                    steps += `x = ${rightSide}\n`;
-                }
-                steps += `🎯 Корень: x = ${x}`;
-                
-                solutionBox.style.display = 'block';
-                solutionBox.innerHTML = steps.replace(/\n/g, '<br>');
-                
-                messageBox.innerHTML = '🚫 Ввод заблокирован. Жми "Следующее" или "Рестарт".';
-                messageBox.style.borderLeftColor = '#f4b740';
-            }
+    function renderEquation(eq) {
+        let { a, b, c } = eq;
+        let bPart = b < 0 ? ` - ${Math.abs(b)}` : b === 0 ? "" : ` + ${b}`;
+        const aPart = (a === 1) ? 'x' : (a + 'x');
+        equationDisplay.textContent = `${aPart}${bPart} = ${c}`;
+    }
 
-            function restartGame() {
-                correctCount = 0;
-                wrongCount = 0;
+    function updateCounters() {
+        correctSpan.textContent = correctCount;
+        wrongSpan.textContent = wrongCount;
+    }
+
+    function resetForNewEquation() {
+        currentAnswerGiven = false;
+        lastAttemptWasWrong = false;
+        answerInput.value = '';
+        answerInput.disabled = false;
+        checkBtn.disabled = false;
+        showSolutionBtn.disabled = false;
+        solutionBox.style.display = 'none';
+        solutionBox.innerHTML = '';
+        feedbackIcon.textContent = '⬜';
+    }
+
+    function loadNewEquation() {
+        currentEquation = generateRandomEquation();
+        renderEquation(currentEquation);
+        resetForNewEquation();
+    }
+
+    function checkAnswerHandler() {
+        if (answerInput.disabled || checkBtn.disabled) return;
+        const rawValue = answerInput.value.trim();
+        if (rawValue === '') return;
+
+        const userNum = parseFloat(rawValue);
+        const isCorrect = Math.abs(userNum - currentEquation.x) < 0.0001;
+
+        if (isCorrect) {
+            feedbackIcon.textContent = '✅';
+            if (!currentAnswerGiven) {
+                correctCount++;
+                currentAnswerGiven = true;
                 updateCounters();
-                loadNewEquation();
-                messageBox.innerHTML = '🔄 Рестарт! Счётчики обнулены. Давай заново.';
             }
-
-            // ---------- Инициализация ----------
-            function init() {
-                loadNewEquation();
-
-                checkBtn.addEventListener('click', checkAnswerHandler);
-                nextBtn.addEventListener('click', loadNewEquation);
-                showSolutionBtn.addEventListener('click', showSolution);
-                restartBtn.addEventListener('click', restartGame);
-
-                answerInput.addEventListener('keypress', function(e) {
-                    if (e.key === 'Enter') {
-                        e.preventDefault();
-                        checkAnswerHandler();
-                    }
-                });
+            answerInput.disabled = true;
+            checkBtn.disabled = true;
+        } else {
+            feedbackIcon.textContent = '❌';
+            if (!currentAnswerGiven && !lastAttemptWasWrong) {
+                wrongCount++;
+                lastAttemptWasWrong = true;
+                updateCounters();
             }
+        }
+    }
 
-            init();
-        })();
-    </script>
+    function showSolution() {
+        const { a, b, c, x } = currentEquation;
+        answerInput.disabled = true;
+        checkBtn.disabled = true;
+        showSolutionBtn.disabled = true;
+
+        let steps = 'Solution:\n';
+        steps += `${a === 1 ? 'x' : a + '·x'} ${b < 0 ? '– ' + Math.abs(b) : '+ ' + b} = ${c}\n`;
+        steps += `Move ${b < 0 ? '-' + Math.abs(b) : '+' + b} to the right:\n`;
+        const rightSide = c - b;
+        steps += `${a === 1 ? 'x' : a + '·x'} = ${rightSide}\n`;
+        if (a !== 1) { steps += `Divide by ${a}: x = ${rightSide} / ${a} = ${x}\n`; } 
+        else { steps += `x = ${rightSide}\n`; }
+        steps += `Answer: x = ${x}`;
+
+        solutionBox.style.display = 'block';
+        solutionBox.innerHTML = steps.replace(/\n/g, '<br>');
+    }
+
+    function restartGame() {
+        correctCount = 0;
+        wrongCount = 0;
+        updateCounters();
+        loadNewEquation();
+    }
+
+    function init() {
+        loadNewEquation();
+        checkBtn.addEventListener('click', checkAnswerHandler);
+        nextBtn.addEventListener('click', loadNewEquation);
+        showSolutionBtn.addEventListener('click', showSolution);
+        restartBtn.addEventListener('click', restartGame);
+        answerInput.addEventListener('keypress', e => { if (e.key === 'Enter') { e.preventDefault(); checkAnswerHandler(); } });
+    }
+
+    init();
+})();
+</script>
 </body>
 </html>
